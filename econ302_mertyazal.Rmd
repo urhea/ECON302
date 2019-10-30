@@ -1,0 +1,227 @@
+---
+title: "Econ302 - R Assignment - 1"
+author: "Mert Yazal"
+date: "10/24/2019"
+output: 
+  rmarkdown::html_document:
+    theme: lumen
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, echo=FALSE,warning=FALSE, message=FALSE}
+library(AER)
+library(data.table)
+library(ggplot2)
+library(readxl)
+library(knitr)
+library(QuantPsyc)
+library(rgl)
+library(rglwidget)
+```
+
+```{r librariess, echo=FALSE,warning=FALSE, message=FALSE}
+lagpad <- function(x, k) {
+  if (k>0) {
+    return (c(rep(NA, k), x)[1 : length(x)] );
+  }
+  else {
+    return (c(x[(-k+1) : length(x)], rep(NA, -k)));
+  }
+}
+#function for adding lags
+```
+
+```{r load myData, include=FALSE}
+data <- read_xlsx("r_assignment.xlsx")
+model1 <- lm(Y ~ X + Z, data = data)
+fit <- lm(Y ~ X, data = data)
+fit2 <- lm( Y ~ Z, data = data)
+fit <- lm(data$Y ~ data$X, data = data) 
+data$predicted <- predict(fit)   
+data$residuals <- residuals(fit) 
+data$predicted <- predict(fit2)  
+data$residuals <- residuals(fit2) 
+```
+
+# Task 1
+Task 1 requires OLS Estimation, DW and Breusch-Pagan Test.
+
+
+### OLS Estimation {.tabset}
+
+Let's estimate our regression model $Y_t = \beta_0 + \beta_1{X_t} + \beta_2{Z_t} + u_t$, and plot what the series are revealing:
+
+#### OLS
+
+```{r ols555, echo=FALSE, warning=FALSE, message=FALSE}
+summary(model1)
+```
+
+We obtain: $\widehat{Y_{t}} = \widehat{\beta_0} + \widehat{\beta_1}X_{t} + \widehat{\beta_2}Z_{t}$
+
+$\widehat{Y_{t}} = `r model1$coefficients[1]` + `r model1$coefficients[2]` X_{t} + `r model1$coefficients[3]` Z_{t}$
+
+####Variables all together
+
+```{r ols123, echo=FALSE, warning=FALSE, message=FALSE}
+plot.zoo(cbind(data$Y, data$X, data$Z), 
+                  plot.type = "single", 
+                  col = c("red", "blue", "green"))
+```
+
+Variables Y, X and Z respectively colors red, blue and green.
+
+#### Y
+```{r ols12, echo=FALSE, warning=FALSE, message=FALSE}
+plot(data$Y)
+```
+
+Therefore, we observe that there is an increasing trend in each variables. They do not well behave.
+
+We obtain: $\widehat{Y_{t}} = \widehat{\beta_0} + \widehat{\beta_1}X_{t} + \widehat{\beta_2}Z_{t}$
+
+$\widehat{Y_{t}} = `r model1$coefficients[1]` + `r model1$coefficients[2]` X_{t} + `r model1$coefficients[3]` Z_{t}$
+
+#### X
+
+```{r ols13, echo=FALSE, warning=FALSE, message=FALSE}
+plot(data$X)
+```
+
+Therefore, we observe that there is an increasing trend in each variables. They do not well behave.
+
+We obtain: $\widehat{Y_{t}} = \widehat{\beta_0} + \widehat{\beta_1}X_{t} + \widehat{\beta_2}Z_{t}$
+
+$\widehat{Y_{t}} = `r model1$coefficients[1]` + `r model1$coefficients[2]` X_{t} + `r model1$coefficients[3]` Z_{t}$
+
+#### Z
+
+```{r ols14, echo=FALSE, warning=FALSE, message=FALSE}
+plot(data$Z)
+```
+
+Therefore, we observe that there is an increasing trend in each variables. They do not well behave. 
+
+We obtain: $\widehat{Y_{t}} = \widehat{\beta_0} + \widehat{\beta_1}X_{t} + \widehat{\beta_2}Z_{t}$
+
+$\widehat{Y_{t}} = `r model1$coefficients[1]` + `r model1$coefficients[2]` X_{t} + `r model1$coefficients[3]` Z_{t}$
+
+
+#### extra: Residuals for $Y_t = \beta_0 + \beta_1{X_t} + u_t$
+
+Residuals
+```{r olsa, echo=FALSE, warning=FALSE, message=FALSE}
+resid(fit)
+```
+
+```{r ols556, echo=FALSE, warning=FALSE, message=FALSE}
+plot(fit, which=1, col=c("blue"))
+```
+
+```{r olsq, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data, aes(x = X, y = Y)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +     # regression line  
+  geom_segment(aes(xend = X, yend = predicted), alpha = .2) +      # draw line from point to line
+  geom_point(aes(color = abs(residuals), size = abs(residuals))) +  # size of the points
+  scale_color_continuous(low = "green", high = "red") +             # colour of the points mapped to residual size - green smaller, red larger
+  guides(color = FALSE, size = FALSE) +                             # Size legend removed
+  geom_point(aes(y = predicted), shape = 1) +
+  theme_bw()
+```
+
+$\widehat{Y_{t}} = `r fit$coefficients[1]` + `r fit$coefficients[2]` X_{t}$
+
+$\widehat{Y_{t}} = \widehat{\beta_0} + \widehat{\beta_1}X_{t} + \widehat{\beta_2}Z_{t}$
+
+#### extra: Residuals for $Y_t = \beta_0 + \beta_1{Z_t} + u_t$
+
+Residuals
+```{r olsk, echo=FALSE, warning=FALSE, message=FALSE}
+resid(fit2)
+```
+
+```{r ols5567, echo=FALSE, warning=FALSE, message=FALSE}
+plot(fit2, which=1, col=c("blue"))
+```
+
+```{r olb7, echo=FALSE, warning=FALSE, message=FALSE}
+
+ggplot(data, aes(x = Z, y = Y)) +
+  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +     # regression line  
+  geom_segment(aes(xend = Z, yend = predicted), alpha = .2) +      # draw line from point to line
+  geom_point(aes(color = abs(residuals), size = abs(residuals))) +  # size of the points
+  scale_color_continuous(low = "green", high = "red") +             # colour of the points mapped to residual size - green smaller, red larger
+  guides(color = FALSE, size = FALSE) +                             # Size legend removed
+  geom_point(aes(y = predicted), shape = 1) +
+  theme_bw()
+```
+
+
+$\widehat{Y_{t}} = `r fit2$coefficients[1]` + `r fit2$coefficients[2]` Z_{t}$
+
+
+#### 3D scatter plot
+
+Residuals in 3D
+
+```{r o49, echo=FALSE, warning=FALSE, message=FALSE}
+library(rgl)
+library(rglwidget)
+
+mfrow3d(nr = 1, nc = 1, sharedMouse = T)  
+scatter3d(Y ~ X + Z, fill=FALSE, data=data)
+rglwidget()
+```
+
+### Durbin Watson Test for Autocorrelation
+
+The estimation results of the following specification of the static model is as follows:
+  
+```{r ols3, echo=FALSE, warning=FALSE, message=FALSE}
+db <- durbinWatsonTest(model1)
+db
+```
+We observe positive DW value, it may have AC problem since we do not know the intervals of upper and lower d statistics. 
+Prob[DW] = `r db$p` > 0.05 do not Rho. NO AC problem.
+
+```{r ols49, echo=FALSE, warning=FALSE, message=FALSE}
+dwtest(model1)
+```
+
+However, in other DW Test, our p value results 0.06. 
+
+#### Breusch-Pagan Test for Autocorrelation
+ 
+The estimation results of the following specification of the static model is as follows:
+
+```{r ols4, echo=FALSE, warning=FALSE, message=FALSE}
+bptest(model1)
+```
+Do not RHo, there is no HC at $\alpha$ = 0.05 level of significance.
+
+# Task 2
+
+### OLS Estimation of dynamic model
+Task 2 requires the estimation of dynamic model, $Y_t = \alpha_0 + \alpha_1{Y_{t-1}} + \alpha_2{X_{t}} + \alpha_3{Z_{t}} + \alpha_4{X_{t-1}} + \alpha_5{Z_{t-1}} + \epsilon_t$ with ARDL(1,1,1).
+
+```{r ols5, echo=FALSE, warning=FALSE, message=FALSE}
+
+model2 <- lm(Y ~ X + Z + Ylag + Xlag + Zlag, data = data)
+summary(model2)
+```
+
+Therefore, our model becomes 
+$\widehat{Y_{t}} = 
+`r model2$coefficients[1]` + 
+`r model2$coefficients[2]` X_{t} + 
+`r model2$coefficients[3]` Z_{t} + 
+`r model2$coefficients[4]` Y_{t-1} + 
+`r model2$coefficients[5]` X_{t-1} + 
+`r model2$coefficients[6]` Z_{t-1}$
+
+### COMFAC Test
+
